@@ -4,3 +4,4 @@ includes/templates/*
 !includes/templates/.gitkeep
 node_modules/
 .htaccess
+scss/.scss-cache/
