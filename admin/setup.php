@@ -54,7 +54,9 @@
                     ('logo', ''),
                     ('homepage', '1'),
                     ('newspage', NULL),
-                    ('comment_approval', 'unapproved')"
+                    ('comment_approval', 'unapproved'),
+                    ('allow_signup', 'true'),
+                    ('allow_signin', 'true')"
                 );
 
                 ////Users
@@ -68,6 +70,13 @@
                         password VARCHAR(60),
                         role INT NOT NULL DEFAULT 1
                     )"
+                );
+                
+                //Pending Users
+                $mysqli->multi_query(
+                    "CREATE TABLE IF NOT EXISTS`users_pending` LIKE `users`;
+                    DROP INDEX email ON `users_pending`;
+                    DROP INDEX username ON `users_pending`;"
                 );
 
                 ////Roles
@@ -144,6 +153,8 @@
                         ip_address VARCHAR(25) DEFAULT NULL,
                         modified INT DEFAULT 0,
                         original_content VARCHAR(1000) DEFAULT NULL
+                        edited_from VARCHAR(1000) DEFAULT NULL,
+                        edited INT DEFAULT 0
                     )"
                 );
 
@@ -215,6 +226,9 @@
                         //Pages that must always be accessible by cms user roles
                         //Manage content is included here as we will differentiate content by post type
                         define('ALLOWED_PAGES', ['404.php', 'index.php', 'setup.php', 'template.php', 'manage-content.php']);
+                        
+                        //The given name for none admin users
+                        define('BASIC_USER', 'Subscriber');
                     ?>"
                 );
 

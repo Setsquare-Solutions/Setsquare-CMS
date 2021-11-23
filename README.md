@@ -16,6 +16,7 @@ It is recommended that you run at least PHP7.1 and ideally PHP7.4, there may be 
 * [Media Manager](#media-manager)
 * [Templates](#templates)
 * [Shortcodes](#shortcodes)
+* [User Accounts](#front-end-user-functionality)
 * [Credits](#credits)
 
 ## Setup
@@ -123,6 +124,8 @@ Page settings lets you choose your homepage, and which page to display news post
 
 Social media lets you link to various social media profiles, these will appear within the footer. You can create custom profiles by adding to the socail_links table within the database. The names should be stored as lower case with hyphens instead of spaces. Font awesome is used to display the logo, so make sure that they have an icon available before creating new social media accounts, the name set in the database should match what Font Awesome uses without the fa- prefix.
 
+Other settings allows you to choose whether or not visitors can register for an account, and whether or not they can sign in to their accounts. You can also fill in Google ReCaptcha credentials here to protect forms from bots. ReCaptcha v3 is currently used to protect contact forms, while v2 is used to protect comments. Though custom functionality can be built to add recaptcha wherever you like.
+
 ### Profile
 
 This page allows users to update their own user details: name, email, username, password. Users cannot change their own role, this must be done by an admin or role which has access to Manage Users.
@@ -156,6 +159,39 @@ Your function should accept an array of parameters rather than each parameter se
 Function names should consist of letters, numbers, hyphens and underscores only. This is also tru for parameter names. Parameter values can be almost anything you like that can be stored as a sting within the two double quotes. 
 
 Note: You should be able to pass double quotes as a parameter value, but make sure you escape them with a backslash `\"`.
+
+## Front End User Functionality
+
+### Subscriber Accounts
+
+As well as being created through the Manage Users section of the admin, website visitors can sign up as a "Subscriber" to the website. Subscriber level users have access to a profile page where they can manage their details, as well as delete or modify any comments they have made.
+
+When a user registers for their own account instead of being set up through the CMS, a verification email will be sent out to the supplied email address. This email contains a link which must be clicked to confirm that the email address exists before they are allowed to access their account. This is to ensure that they can recieve any required communications such as password reset links. As well as to protect against the creation of bot accounts.
+
+Custom functionality can be built around these subscriber accounts to allow signed in users to access things such as downloadable resources or other functionality which may not be available to none registered users.
+
+The following urls can be used to allow users to sign up:
+
+* https://yoursite.com/signup - Allows users to register an account
+* https://yoursite.com/signin - Allows registered users to sign in
+* https://yoursite.com/signin?forgottenpassowrd - Allows registered users to reset their passwords, only works for subscriber accounts
+* https://yoursite.com/myaccount - Allows users to manage their account
+
+Sessions are used to check whether a user is signed in or not, the following sessions are set:
+
+* `$_SESSION['profileid']` - The auto-increment ID that has been assigned to the user
+* `$_SESSION['profileuser']` - The username chosen by the user at sign up
+
+### Admin Accounts
+
+Administrative users (Admin, Standard, Custom roles etc) are able to login via the **https://yoursite.com/signin** along with the regular admin-login link, they can then access the CMS as if they had logged in at the primary **admin-login** link. They can also manage their details and comments at **https://yoursite.com/myaccount**.
+
+Sessions are also used to check the signed in status of an admin user:
+
+* `$_SESSION['profileid']` - The auto-increment ID that has been assigned to the user
+* `$_SESSION['profileuser']` - The username given to the user by an admin
+* `$_SESSION['adminid']` - Identical to profileid, but must be set in order to access the CMS
+* `$_SESSION['adminuser']` - Identical to profileuser, but must be set in order to access the CMS
 
 ## Credits
 

@@ -8,7 +8,7 @@
 	}
 
 	if(isset($_POST['dologin'])) {
-		$checkUser = $mysqli->prepare("SELECT id, username, password FROM `users` WHERE username = ?");
+		$checkUser = $mysqli->prepare("SELECT id, username, password FROM `users` WHERE username = ? AND role > 0");
 		$checkUser->bind_param('s', $_POST['username']);
 		$checkUser->execute();
 		$userResult = $checkUser->get_result();
@@ -21,6 +21,8 @@
 				
 				$_SESSION['adminid'] = $user['id'];
 				$_SESSION['adminuser'] = $user['username'];
+                $_SESSION['profileid'] = $_SESSION['adminid'];
+                $_SESSION['profileuser'] = $_SESSION['adminuser'];
 				
                 if(!empty($_SESSION['adminredirect'])) {
                     header('Location: ' . $_SESSION['adminredirect']);
