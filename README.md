@@ -36,7 +36,8 @@ Next you will want to create a new MySQL database and go to **https://yoursite.c
 You can click the link on the confirmation message or in the email to get to the admin login, or go to **https://yoursite.com/admin-login/**. The initial account always has the username **admin**.
 
 ### Bootstrap
-You may also wish to install bootstrap via npm, Setsquare CMS is using bootstrap 5.0.2, 5.1.0 has caused some issues so I would avoid it for now. The only reason you should need to install bootstrap separately is to use with scss. The two existing scss files both import from **../node_modules/bootstrap/scss/**. If you want to make changes to these files then you should also install bootstrap. 
+
+Bootstrap 5.0.2 is now being included by default, although it's inclusion is only required for the purposes of modifying the main css files through scss. If you do not wish to do this and want to free up some space then feel free to delete the node modules directory. You can re-install Bootstrap at any time by using:
 
 > npm install bootstrap@5.0.2
 
@@ -121,6 +122,8 @@ You are also able to create as many custom roles as you like to limit page acces
 Website details contains all of the information that you might want to display about your company or site. The name of the website, address and contact details. Note that the email address here is also used for contact forms if using the provided **includes/actions/formsubmit.php** script. These details generally appear within the footer, and possibly the header too.
 
 Page settings lets you choose your homepage, and which page to display news posts. If no homepage is set then the first page in the posts table in the database will be used as the homepage. If no news page is set then news posts simply won't be displayed anywhere.
+
+Mail settings allows you to customise how system emails are sent. System emails include account creation notifications, password reset links etc. You are able to set the email address that the emails are sent out from as well as the friendly name which appears as the sender. You are also able to set a reply to address to receive replies if you wish to do so. Finally you are able to set SMTP details if you wish to use a service such as Amazon SES.
 
 Social media lets you link to various social media profiles, these will appear within the footer. You can create custom profiles by adding to the socail_links table within the database. The names should be stored as lower case with hyphens instead of spaces. Font awesome is used to display the logo, so make sure that they have an icon available before creating new social media accounts, the name set in the database should match what Font Awesome uses without the fa- prefix.
 

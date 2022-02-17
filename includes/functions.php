@@ -1,7 +1,12 @@
 <?php
 	
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\SMTP;
+    use PHPMailer\PHPMailer\Exception;
+
 	include_once(dirname(__FILE__) . '/settings.php');
 	include_once(dirname(__FILE__) . '/shortcodes.php');
+    require_once(dirname(__DIR__) . '/vendor/autoload.php');
 
 	//Check if admin user is logged in
 	function isloggedin() {
@@ -238,77 +243,125 @@
 		}
     }
 
-	//PHP mail function with HTML template
-    ////For CMS purposes
-	function systememail($to, $subject, $content, $additionalHeaders = '', $from = '') {
-		$from = (empty($from) ? 'noreply@' . $_SERVER['SERVER_NAME'] : $from);
-		
-		$headers  = 'From: ' . $from . "\r\n";
-		$headers .= 'MIME-Version: 1.0' . "\r\n";
-		$headers .= 'Content-type:text/html;charset=UTF-8' . "\r\n";
-		
-		$messageHeader = 
-			'<html>				
-				<body style="font-family: sans-serif; background: #f3f3f3; padding: 5rem 2rem; max-width: 1000px;">
-					<div class="padding: 0 1rem; margin: 5rem auto;">
-						<div style="background: #212529; padding: 1rem; display: flex; align-items: center; justify-content: center;">
-							<img src="https://' . $_SERVER['SERVER_NAME'] . ROOT_DIR . 'images/setsquare-cms-logo.png" alt="Setsquare CMS Logo" style="display: block; width: 100%; max-width: 64px; margin-right: 1rem;">
-							<span style="font-size: 32px; color: #fff;">Setsquare CMS</span>
-						</div>
+	  //PHP mail function with HTML template
+    $sendEmailDebug = '';
 
-						<div style="background: #fff; padding: 1rem;">';
-		
-		$messageFooter =
-						'</div>
-					</div>
-				</body>
-			</html>';
-		
-		$message = $messageHeader . $content . $messageFooter;
-		
-		if(mail($to, $subject, $message, $headers, '-f' . $from)) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-    ////For public facing purposes
-    function sendemail($to, $subject, $content, $additionHeaders = '', $from = '') {
-        //Get logo for header
-        //Get background colour for header
-        $from = (empty($from) ? 'noreply@' . $_SERVER['SERVER_NAME'] : $from);
-		
-		$headers  = 'From: ' . $from . "\r\n";
-		$headers .= 'MIME-Version: 1.0' . "\r\n";
-		$headers .= 'Content-type:text/html;charset=UTF-8' . "\r\n";
-		
-		$messageHeader = 
-			'<html>				
-				<body style="font-family: sans-serif; background: #f3f3f3; padding: 5rem 2rem; max-width: 1000px;">
-					<div class="padding: 0 1rem; margin: 5rem auto;">
-						<div style="background: #009688; padding: 1rem; display: flex; align-items: center; justify-content: center;">
-							<img src="https://' . $_SERVER['SERVER_NAME'] . ROOT_DIR . 'images/setquare-cms-logo.png" alt="Setsquare CMS Logo" style="display: block; width: 100%; max-width: 64px; margin-right: 1rem;">
-							<span style="font-size: 32px; color: #fff;">Setsquare CMS</span>
-						</div>
-
-						<div style="background: #fff; padding: 1rem;">';
-		
-		$messageFooter =
-						'</div>
-					</div>
-				</body>
-			</html>';
-		
-		$message = $messageHeader . $content . $messageFooter;
-		
-		if(mail($to, $subject, $message, $headers, '-f' . $from)) {
-			return true;
-		}
-		else {
-			return false;
-		}
+    function sendemail($to, $subject, $content, $template = '') {
+        global $mysqli, $sendEmailDebug;
+        
+        //Load template
+        if(empty($template) || !file_exists($template)) {
+            $template = file_get_contents(dirname(__FILE__) . '/mail-templates/default.html');
+        }
+        else {
+            $template = file_get_contents(dirname(__FILE__) . '/mail-templates/' . $template);
+        }
+        
+        //Replace template content with passed content
+        $template = preg_replace('/{{CONTENT}}/', $content, $template);
+        
+        //Attempt to convert template images to absolute path
+        //Previously base64, this does not work for most mail providers
+        preg_match_all('/<img.*src="([^"]+)".*>/', $template, $matches);
+        
+        if(is_array($matches) && count($matches) > 0) {
+            foreach($matches[1] as $match) {
+                /*$extension = pathinfo($match)['extension'];
+                $base64 = base64_encode(file_get_contents($match));
+                $template = preg_replace('#<img(.*)src="' . $match . '"(.*)>#', '<img$1src="data:image/' . $extension . ';base64,' . $base64 . '"$2>', $template);*/
+                
+                $real = 'https://' . $_SERVER['SERVER_NAME'] . ROOT_DIR . explode(ROOT_DIR, realpath($match))[1]; 
+                echo $match . ': ' . $real . ': ' . realpath($match) . '<br>';
+                if(file_exists(realpath($match))) {
+                    $template = preg_replace('#<img(.*)src="' . $match . '"(.*)>#', '<img$1src="' . $real . '"$2>', $template);
+                }
+            }
+        }
+        
+        //Get mail details from settings table
+        $settings = $mysqli->query("SELECT name, value FROM `settings` WHERE name IN('use_smtp', 'smtp_host', 'smtp_username', 'smtp_password', 'smtp_port', 'mail_from_address', 'mail_from_friendly', 'reply_to_address', 'reply_to_friendly')");
+        $mailSettings = [];
+        
+        if($settings->num_rows > 0) {
+            while($row = $settings->fetch_assoc()) {
+                $mailSettings[$row['name']] = $row['value'];
+            }
+        }
+        
+        //Set basic details
+        $mail = new PHPMailer();
+        $mail->isHTML(true);
+        $mail->addAddress($to);
+        $mail->Subject = $subject;
+        $mail->Body = $template;
+        
+        $sendEmailDebug = '';
+        $mail->SMTPDebug = 3;
+        $mail->Debugoutput = function($output, $level) {
+            global $sendEmailDebug;
+            $sendEmailDebug .= $level . ': ' . $output . '<br>';
+        };
+        
+        //Set SMTP settings
+        if(!empty($mailSettings['use_smtp']) && $mailSettings['use_smtp'] === 'true') {
+            $mail->isSMTP();
+            $mail->SMTPAuth = true;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            
+            $mail->Host = $mailSettings['smtp_host'];
+            $mail->Username = $mailSettings['smtp_username'];
+            $mail->Password = $mailSettings['smtp_password'];
+            $mail->Port = $mailSettings['smtp_port'];
+        }
+        
+        //Set From address
+        if(!empty($mailSettings['mail_from_address']) && !empty($mailSettings['mail_from_friendly'])) {
+            $mail->setFrom($mailSettings['mail_from_address'], $mailSettings['mail_from_friendly']);
+        }
+        elseif(!empty($mailSettings['mail_from_address'])) {
+            $mail->setFrom($mailSettings['mail_from_address']);
+        }
+        elseif(!empty($mailSettings['mail_from_friendly'])) {
+            $mail->setFrom('noreply@' . $_SERVER['SERVER_NAME'], $mailSettings['mail_from_friendly']);
+        }
+        else {
+            $mail->setFrom('noreply@' . $_SERVER['SERVER_NAME']);
+        }
+        
+        //Set reply to address
+        if(!empty($mailSettings['reply_to_address']) && !empty($mailSettings['reply_to_friendly'])) {
+            $mail->addReplyTo($mailSettings['reply_to_address'], $mailSettings['reply_to_friendly']);
+        }
+        elseif(!empty($mailSettings['reply_to_address'])) {
+            $mail->addReplyTo($mailSettings['reply_to_address']);
+        }
+        
+        //Send mail
+        if($mail->Send()) {
+            $status = 'success';
+            $statusCode = 1;
+            $statusMessage = 'Mail sent successfully';
+        }
+        else {
+            $status = 'fail';
+            $statusCode = 0;
+            $statusMessage = $mail->ErrorInfo;
+        }
+        
+        //Log Mail
+        $log = [
+            'connection_ip' => $_SERVER['REMOTE_ADDR'],
+            'time' => date('Y-m-d H:i:s'),
+            'status' => $status,
+            'Message' => $statusMessage,
+            'phpmailer' => $sendEmailDebug
+        ];
+        
+        $updateLog = $mysqli->prepare("INSERT INTO `mail_log` (json_data) VALUE(?)");
+        $updateLog->bind_param('s', json_encode($log));
+        $updateLog->execute();
+        
+        return $statusCode;
     }
 
     //Check if visitors are allow to sign up or sign in
@@ -621,6 +674,23 @@
         
         return $output;
     }
+
+    //Convert string to unique value by appending integer
+    function uniquevalue($value, $check, $delimiter = '') {
+		if(!is_array($check)) {
+			$check = [];
+		}
+		
+		$valueToCheck = $value;
+		$increment = 1;
+		
+		while(in_array($valueToCheck, $check)) {
+			$valueToCheck = $value . $delimiter . $increment;
+			$increment++;
+		}
+		
+		return $valueToCheck;
+	}
 
     //Include class
     $classes = scandir(dirname(__FILE__) . '/classes');
