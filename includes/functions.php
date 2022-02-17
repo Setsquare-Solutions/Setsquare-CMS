@@ -109,10 +109,10 @@
 		$metadata = '';
 		
 		if(!empty($title) && is_string($title)) {
-			$metadata .= '<title>' . $title . ' | Clover CMS</title>';
+			$metadata .= '<title>' . $title . ' | Setsquare CMS</title>';
 		}
 		else {
-			$metadata .= '<title>Clover CMS</title>';
+			$metadata .= '<title>Setsquare CMS</title>';
 		}
 		
 		if(!empty($description) && is_string($description)) {
@@ -243,7 +243,7 @@
 		}
     }
 
-	//PHP mail function with HTML template
+	  //PHP mail function with HTML template
     $sendEmailDebug = '';
 
     function sendemail($to, $subject, $content, $template = '') {

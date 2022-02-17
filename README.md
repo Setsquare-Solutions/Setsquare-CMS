@@ -1,6 +1,4 @@
-# Clover-CMS
-
-I have created this CMS for my own personal use however want to share it in case anyone else finds it helpful for their projects. As such anyone else using it may not find things very intuitive or easy to develop further. I am maintaing this repository myself and working on it in my spare time. Feel free to get in touch if you need assistance and I will do my best to help.
+# Setsquare-CMS
 
 It is recommended that you run at least PHP7.1 and ideally PHP7.4, there may be some incompatibilities with PHP8.0 but I have fixed everything that I have found so far.
 
@@ -137,7 +135,7 @@ This page allows users to update their own user details: name, email, username, 
 
 ### Media Manager
 
-To handle file management Clover CMS uses [Responsive Filemanager](https://github.com/trippo/ResponsiveFilemanager). You are able to upload files, rename, delete and organsise using folders. Responsive filemanager is also used when inserting media into Tiny MCE or selecting images such as featured images and the site logo.
+To handle file management Setsquare CMS uses [Responsive Filemanager](https://github.com/trippo/ResponsiveFilemanager). You are able to upload files, rename, delete and organsise using folders. Responsive filemanager is also used when inserting media into Tiny MCE or selecting images such as featured images and the site logo.
 
 The latest full release 9.14.0 is not compatible with PHP8.0, so the latest version from Github is currently being used, although this isn't a full release and doesn't seem to be working perfectly. 
 

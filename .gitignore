@@ -3,3 +3,4 @@ includes/settings.php
 includes/templates/*
 !includes/templates/.gitkeep
 .htaccess
+scss/.scss-cache/

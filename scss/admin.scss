@@ -3,8 +3,8 @@
 
 $enable-negative-margins: true;
 
-$primary: #009688;
-$secondary: #005996;
+$primary: #2196f3;
+$secondary: #f44336;
 
 $theme-colors: (
 	"primary" : $primary,
@@ -120,7 +120,6 @@ body#tinymce {
 
 #adminLoginPage, #setupPage {
 	background-image: url('../images/admin-background.jpg');
-	background-color: #00963D;
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: cover;
