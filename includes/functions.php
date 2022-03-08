@@ -4,7 +4,6 @@
     use PHPMailer\PHPMailer\SMTP;
     use PHPMailer\PHPMailer\Exception;
 
-	include_once(dirname(__FILE__) . '/settings.php');
 	include_once(dirname(__FILE__) . '/shortcodes.php');
     require_once(dirname(__DIR__) . '/vendor/autoload.php');
 
@@ -58,7 +57,7 @@
 
     //Check if user has access to page
     function checkaccess($pagename, $menu = false) {
-        global $mysqli;
+        global $mysqli, $adminMenu;
         $allowed = false;
         
         $getRole = $mysqli->prepare(
@@ -83,7 +82,7 @@
         if($allowed == false && $menu == false) {
             http_response_code(403);
             require_once(dirname(__DIR__) . '/admin/includes/header.php');
-
+            
             echo 
                 '<div>
                     <div class="alert alert-danger mt-3">
@@ -246,7 +245,7 @@
 	  //PHP mail function with HTML template
     $sendEmailDebug = '';
 
-    function sendemail($to, $subject, $content, $template = '') {
+    function sendemail($to, $subject, $content, $attachments = [], $template = '') {
         global $mysqli, $sendEmailDebug;
         
         //Load template
@@ -265,13 +264,9 @@
         preg_match_all('/<img.*src="([^"]+)".*>/', $template, $matches);
         
         if(is_array($matches) && count($matches) > 0) {
-            foreach($matches[1] as $match) {
-                /*$extension = pathinfo($match)['extension'];
-                $base64 = base64_encode(file_get_contents($match));
-                $template = preg_replace('#<img(.*)src="' . $match . '"(.*)>#', '<img$1src="data:image/' . $extension . ';base64,' . $base64 . '"$2>', $template);*/
-                
+            foreach($matches[1] as $match) {                
                 $real = 'https://' . $_SERVER['SERVER_NAME'] . ROOT_DIR . explode(ROOT_DIR, realpath($match))[1]; 
-                echo $match . ': ' . $real . ': ' . realpath($match) . '<br>';
+                
                 if(file_exists(realpath($match))) {
                     $template = preg_replace('#<img(.*)src="' . $match . '"(.*)>#', '<img$1src="' . $real . '"$2>', $template);
                 }
@@ -291,9 +286,28 @@
         //Set basic details
         $mail = new PHPMailer();
         $mail->isHTML(true);
-        $mail->addAddress($to);
         $mail->Subject = $subject;
         $mail->Body = $template;
+
+        if(is_array($to) && !empty($to)) {
+            $mail->addAddress('noreply@' . $_SERVER['SERVER_NAME']);
+
+            foreach($to as $t) {
+                $mail->addBCC($t);    
+            }
+        }
+        else {
+            $mail->addAddress($to);
+        }
+
+        //Add attachments
+        if(is_array($attachments) && !empty($attachments)) {
+            foreach($attachments as $attachment) {
+                if(file_exists($attachment)) {
+                    $mail->addAttachment($attachment);
+                }
+            }
+        }
         
         $sendEmailDebug = '';
         $mail->SMTPDebug = 3;
@@ -392,13 +406,13 @@
     }
 
     //Carousel
-    function carousel($postId, $builder = false, $json = '', $interval = 5000, $wrap = true, $controls = true) {        
+    function carousel($postId, $builder = false, $json = '', $table = 'posts', $interval = 5000, $wrap = true, $controls = true) {        
         global $mysqli;
 
         $slides = '';
         $si = 0;
 
-        $getSlides = $mysqli->prepare("SELECT carousel FROM `posts` WHERE id = ?");
+        $getSlides = $mysqli->prepare("SELECT carousel FROM `$table` WHERE id = ?");
         $getSlides->bind_param('i', $postId);
         $getSlides->execute();
         $slidesResult = $getSlides->get_result();
@@ -692,7 +706,16 @@
 		return $valueToCheck;
 	}
 
-    //Include class
+    //Insert item to admin navigation
+    function add_admin_navigation($items, $offset, $length = 0) {
+        global $adminMenu;
+
+        if(!empty($adminMenu)) {
+            array_splice($adminMenu, $offset, $length, $items);
+        }
+    }
+
+    //Include classes
     $classes = scandir(dirname(__FILE__) . '/classes');
 
     foreach($classes as $class) {
@@ -700,4 +723,16 @@
             include_once(dirname(__FILE__) . '/classes/' . $class);
         }
     }
-    
+
+    //Include plugins
+    $plugins = glob(dirname(__FILE__) . '/plugins/*', GLOB_ONLYDIR);
+
+    foreach($plugins as $plugin) {
+        $pluginFiles = scandir($plugin);
+
+        foreach($pluginFiles as $pluginFile) {
+            if(strpos($pluginFile, '.plugin') !== false) {
+                include_once($plugin . '/' . $pluginFile);
+            }
+        }
+    }

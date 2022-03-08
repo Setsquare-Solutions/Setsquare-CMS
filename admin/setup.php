@@ -14,11 +14,12 @@
         }
         
         //Check write permissions for settings
+        $template = dirname(__FILE__, 2) . '/includes/settings.template.php';
         $settings = fopen(dirname(__FILE__, 2) . '/includes/settings.php', 'w');
         
-        if(!$settings) {
+        if(!$settings || !file_exists($template)) {
             $status = 'danger';
-            $setupmessage = 'Failed to create settings file, ensure permissions are correct for /includes directory';
+            $setupmessage = 'Failed to create settings file, ensure permissions are correct for /includes directory and "settings.template.php" exists';
         }
         else {
             //Connect to the database
@@ -31,16 +32,14 @@
             else {
                 //Create the required tables
                 runupdate:
-                ////Settings
-                $mysqli->query(
+                $queryErrors = '';
+                $queries = [
+                    //Settings
                     "CREATE TABLE IF NOT EXISTS `settings` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(191) UNIQUE,
                         value VARCHAR(255)
-                    )"
-                );
-
-                $mysqli->query(
+                    )",
                     "INSERT IGNORE INTO `settings` (name, value) VALUES
                     ('setup_complete', 0),
                     ('website_name', ''),
@@ -70,11 +69,8 @@
                     ('mail_from_address', ''),
                     ('mail_from_friendly', ''),
                     ('reply_to_address', ''),
-                    ('reply_to_friendly', '')"
-                );
-
-                ////Users
-                $mysqli->query(
+                    ('reply_to_friendly', '')",
+                    //Users
                     "CREATE TABLE IF NOT EXISTS `users` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         first_name VARCHAR(255),
@@ -83,51 +79,33 @@
                         username VARCHAR(191) UNIQUE,
                         password VARCHAR(60),
                         role INT NOT NULL DEFAULT 1
-                    )"
-                );
-                
-                //Pending Users
-                $mysqli->multi_query(
+                    )",
+                    //Users Pending
                     "CREATE TABLE IF NOT EXISTS`users_pending` LIKE `users`;
-                    DROP INDEX email ON `users_pending`;
-                    DROP INDEX username ON `users_pending`;"
-                );
-
-                ////Roles
-                $mysqli->query(
+                    DROP INDEX IF EXISTS email ON `users_pending`;
+                    DROP INDEX username ON `users_pending`;",
                     "CREATE TABLE IF NOT EXISTS `roles` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(191) UNIQUE,
                         access LONGTEXT
-                    )"
-                );
-
-                $mysqli->query("INSERT IGNORE INTO `roles` (id, name, access) VALUES(1, 'Admin', 'ALL'), (2, 'Standard', NULL)");
-
-                ////Password Reset
-                $mysqli->query(
+                    )",
+                    //Roles
+                    "INSERT IGNORE INTO `roles` (id, name, access) VALUES(1, 'Admin', 'ALL'), (2, 'Standard', NULL)",
                     "CREATE TABLE IF NOT EXISTS `password_reset` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         email VARCHAR(191) UNIQUE,
                         token VARCHAR(191) UNIQUE,
                         date_generated DATETIME DEFAULT CURRENT_TIMESTAMP(),
                         expired INT DEFAULT 0
-                    )"
-                );
-
-                ////Post Types
-                $mysqli->query(
+                    )",
+                    //Post Types
                     "CREATE TABLE IF NOT EXISTS `post_types` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(191) UNIQUE,
                         icon VARCHAR(50)
-                    )"
-                );
-
-                $mysqli->query("INSERT IGNORE INTO `post_types` (name, icon) VALUES ('pages', 'fa-file-alt'), ('news', 'fa-newspaper')");
-
-                ////Posts
-                $mysqli->query(
+                    )",
+                    "INSERT IGNORE INTO `post_types` (name, icon) VALUES ('pages', 'fa-file-alt'), ('news', 'fa-newspaper')",
+                    //Posts
                     "CREATE TABLE IF NOT EXISTS `posts` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         post_type_id INT,
@@ -148,13 +126,9 @@
                         meta_author VARCHAR(255),
                         meta_keywords VARCHAR(255),
                         allow_comments INT DEFAULT 0
-                    )"
-                );
-
-                $mysqli->query("INSERT IGNORE INTO `posts` (id, post_type_id, name, content, author, state) VALUES(1, 1, 'Welcome', '<h1>Welcome to Setsquare CMS</h1><p>Set up is complete, you can now start creating content.</p>', 'Admin User', 2)");
-                
-                //Comments
-                $mysqli->query(
+                    )",
+                    "INSERT IGNORE INTO `posts` (id, post_type_id, name, content, author, state) VALUES(1, 1, 'Welcome', '<h1>Welcome to Clover CMS</h1><p>Set up is complete, you can now start creating content.</p>', 'Admin User', 2)",
+                    //Comments
                     "CREATE TABLE IF NOT EXISTS `comments` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         post_id INT,
@@ -166,24 +140,16 @@
                         date_posted DATETIME DEFAULT CURRENT_TIMESTAMP(),
                         ip_address VARCHAR(25) DEFAULT NULL,
                         modified INT DEFAULT 0,
-                        original_content VARCHAR(1000) DEFAULT NULL
+                        original_content VARCHAR(1000) DEFAULT NULL,
                         edited_from VARCHAR(1000) DEFAULT NULL,
                         edited INT DEFAULT 0
-                    )"
-                );
-
-                ////Navigation Menus
-                $mysqli->query(
+                    )",
+                    //Navigation
                     "CREATE TABLE IF NOT EXISTS `navigation_menus` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(191) UNIQUE
-                    )"
-                );
-
-                $mysqli->query("INSERT IGNORE INTO `navigation_menus` (name) VALUES ('Breadcrumbs')");
-
-                ////Navigation Structure
-                $mysqli->query(
+                    )",
+                    "INSERT IGNORE INTO `navigation_menus` (name) VALUES ('Breadcrumbs')",
                     "CREATE TABLE IF NOT EXISTS `navigation_structure` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         menu_id INT DEFAULT 0,
@@ -193,77 +159,91 @@
                         target VARCHAR(50) DEFAULT NULL,
                         parent_id INT DEFAULT 0,
                         position INT DEFAULT 0
-                    )"
-                );
-
-                ////Social Links
-                $mysqli->query(
+                    )",
+                    //Social Links
                     "CREATE TABLE IF NOT EXISTS `social_links` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(191) UNIQUE,
                         link VARCHAR(255)
-                    )"
-                );
-                
-                $mysqli->query("INSERT IGNORE INTO `social_links` (name) VALUES('facebook'), ('facebook'), ('twitter'), ('instagram'), ('youtube'), ('linkedin')");
-
-                //Forms
-                $mysqli->query(
+                    )",
+                    "INSERT IGNORE INTO `social_links` (name) VALUES('facebook'), ('twitter'), ('instagram'), ('youtube'), ('linkedin')",
+                    //Forms
                     "CREATE TABLE IF NOT EXISTS `forms` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(255),
                         structure LONGTEXT
-                    )"
-                );
-
-                $mysqli->query(
-                    "INSERT INTO `social_links` ('name') VALUES
-                    ('facebook'),
-                    ('twitter'),
-                    ('instagram'),
-                    ('youtube'),
-                    ('linkedin')"
-                );
-                
-                //Mail Log
-                $mysqli->query(
+                    )",
+                    //Mail Log
                     "CREATE TABLE IF NOT EXISTS `mail_log` (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         json_data LONGTEXT DEFAULT NULL
                     )"
-                );
-                
+                ];
+
+                foreach($queries as $query) {
+                    if(strpos($query, ';') !== false) {
+                        $mysqli->multi_query($query);
+                    }
+                    else {
+                        $mysqli->query($query);
+                    }
+
+                    while($mysqli->more_results()) {
+                        $mysqli->next_result();
+                    }
+
+                    if($mysqli->error) {
+                        $queryErrors .= $mysqli->error . '<br><br>';
+                    }
+                }
+
                 //If we are updating then only update the database tables and do nothing else
                 if(isset($_GET['update'])) {
-                    header('Location: ./');
+                    if(!empty($queryErrors)) {
+                        echo $queryErrors . '<a href="./">Return to dashboard</a>';
+                    }
+                    else {
+                        header('Location: ./');
+                    }
+
                     exit();
                 }
 
-                //Create the settings file     
+                //Create the settings file
+                $template = file($template);
+                $templateContent = '';
+
                 $rootdir = '/' . explode($_SERVER['DOCUMENT_ROOT'] . '/', dirname(__FILE__, 2))[1] . '/';
                 $rootdir = ($rootdir == '//' ? '/' : $rootdir);
                 define('ROOT_DIR', $rootdir);
 
-                fwrite($settings, 
-                    "<?php
-                        //Database Details
-                        \$hostname = '" . $_POST['hostname'] . "';
-                        \$database = '" . $_POST['database'] . "';
-                        \$username = '" . $_POST['username'] . "';
-                        \$password = '" . $_POST['password'] . "';
+                foreach($template as $i => $line) {
+                    switch ($i) {
+                        case 0:
+                            $templateContent .= '<?php' . "\n";
+                            break;
+                        case 3:
+                            $templateContent .= "\t" . '$hostname = \'' . $_POST['hostname'] . '\';' . "\n";
+                            break;
+                        case 4:
+                            $templateContent .= "\t" . '$database = \'' . $_POST['database'] . '\';' . "\n";
+                            break;
+                        case 5:
+                            $templateContent .= "\t" . '$username = \'' . $_POST['username'] . '\';' . "\n";
+                            break;
+                        case 6:
+                            $templateContent .= "\t" . '$password = \'' . $_POST['password'] . '\';' . "\n";
+                            break;
+                        case 8:
+                            $templateContent .= "\t" . 'define(\'ROOT_DIR\', \'' . $rootdir . '\');' . "\n";
+                            break;
+                        default:
+                            $templateContent .= $line;
+                            break;
+                        }
+                }
 
-                        define('ROOT_DIR', '" . $rootdir . "');
-                        define('BASE_DIR', (!empty(\$_SERVER['HTTPS']) ? 'https' : 'http') . '://' . \$_SERVER['SERVER_NAME'] . ROOT_DIR);
-
-                        //Pages that must always be accessible by cms user roles
-                        //Manage content is included here as we will differentiate content by post type
-                        define('ALLOWED_PAGES', ['404.php', 'index.php', 'setup.php', 'template.php', 'manage-content.php']);
-                        
-                        //The given name for none admin users
-                        define('BASIC_USER', 'Subscriber');
-                    ?>"
-                );
-
+                fwrite($settings, $templateContent);
                 fclose($settings);
 
                 //Create the admin user
