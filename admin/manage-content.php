@@ -295,6 +295,7 @@
 							<th class="shorten">ID</th>
 							<th>Details</th>
 							<th class="shorten">Date Created</th>
+							<th class="shorten">Status</th>
 							<th class="shorten">Actions</th>
 						</tr>
 					</thead>
@@ -313,6 +314,11 @@
 									<?php echo date('d/m/Y', strtotime($row['date_created'])); ?><br>
 									<?php echo date('H:i', strtotime($row['date_created'])); ?>
 								</td>
+
+                                <td class="shorten text-center">
+                                    <span <?php echo ($row['state'] == 0 ? 'class="fas fa-eye-slash text-muted" title="Hidden"' : ($row['state'] == 1 ? 'class="fas fa-eye text-muted" title="Draft"' : 'class="fas fa-eye" title="Visible"')); ?>></span><br>
+                                    <span <?php echo ($row['allow_comments'] == 0 ? 'class="fas fa-comment-slash text-muted" title="Comments not allowed"' : 'class="fas fa-comment" title="Comments allowed"'); ?>></span>
+                                </td>
 								
 								<td class="shorten">
 									<div class="form-group mb-n1">

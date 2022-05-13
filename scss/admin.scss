@@ -286,6 +286,14 @@ body#tinymce {
     margin-top: $spacer;
 }
 
+.navigationLevel .pendingIcon {
+    display: none;
+}
+
+.navigationLevel.pending .pendingIcon {
+    display: inline-block;
+}
+
 .carousel-inner {
     position: relative;
     overflow: hidden;
