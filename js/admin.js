@@ -113,9 +113,25 @@ $("input[type='submit'][data-confirm]").click(function() {
 	}
 });
 
-//Clear search || Return to list
-$("input[name='clearSearch'],input[name='returnList']").click(function() {
-    if(document.referrer && document.referrer.indexOf(location.hostname) !== false && document.referrer != location.href) {
+//Clear search
+$("input[name='clearSearch']").click(function() {
+    window.location.href = window.location.href.split("?")[0];
+});
+
+//Return to list
+$("input[name='returnList']").click(function() {
+    var queryString = location.href.split("?")[1];
+    var queryItems = queryString.split("&");
+    var queryParameters = [];
+    
+    $.each(queryItems, function(index, value) {
+        queryParameters[value.split("=")[0]] = value.split("=")[1];
+    });
+
+    if(queryParameters["return"].length) {
+        window.location.href = decodeURIComponent(queryParameters["return"]);
+    }
+    else if(document.referrer && document.referrer.indexOf(location.hostname) !== false && document.referrer != location.href) {
         window.location.href = document.referrer;
     }
     else {
