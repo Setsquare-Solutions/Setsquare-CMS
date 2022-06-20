@@ -78,7 +78,8 @@
                         email VARCHAR(191) UNIQUE,
                         username VARCHAR(191) UNIQUE,
                         password VARCHAR(60),
-                        role INT NOT NULL DEFAULT 1
+                        role INT NOT NULL DEFAULT 1,
+                        last_signin DATETIME DEFAULT NULL
                     )",
                     //Users Pending
                     "CREATE TABLE IF NOT EXISTS`users_pending` LIKE `users`;
@@ -223,16 +224,16 @@
                             $templateContent .= '<?php' . "\n";
                             break;
                         case 3:
-                            $templateContent .= "\t" . '$hostname = \'' . $_POST['hostname'] . '\';' . "\n";
+                            $templateContent .= "\t" . 'define(\'DB_HOST\', \'' . $_POST['hostname'] . '\');' . "\n";
                             break;
                         case 4:
-                            $templateContent .= "\t" . '$database = \'' . $_POST['database'] . '\';' . "\n";
+                            $templateContent .= "\t" . 'define(\'DB_DATABASE\', \'' . $_POST['database'] . '\');' . "\n";
                             break;
                         case 5:
-                            $templateContent .= "\t" . '$username = \'' . $_POST['username'] . '\';' . "\n";
+                            $templateContent .= "\t" . 'define(\'DB_USERNAME\', \'' . $_POST['username'] . '\');' . "\n";
                             break;
                         case 6:
-                            $templateContent .= "\t" . '$password = \'' . $_POST['password'] . '\';' . "\n";
+                            $templateContent .= "\t" . 'define(\'DB_PASSWORD\', \'' . $_POST['password'] . '\');' . "\n";
                             break;
                         case 8:
                             $templateContent .= "\t" . 'define(\'ROOT_DIR\', \'' . $rootdir . '\');' . "\n";
@@ -293,11 +294,11 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com">
 		<link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-		<link rel="stylesheet" href="../css/adminStyle.min.css">
+		<link rel="stylesheet" href="../css/admin.min.css">
 		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-		<script src="../bootstrap-5.0.1/bootstrap.min.js"></script>
+		<script src="js/bootstrap.bundle.min.js"></script>
 		<script src="https://kit.fontawesome.com/a05d626b05.js" crossorigin="anonymous"></script>
     </head>
     

@@ -31,6 +31,7 @@ html, body {
 
 body {
 	font-family: "roboto", "open-sans", sans-serif;
+    overflow: hidden;
 }
 
 body#tinymce {
@@ -40,7 +41,7 @@ body#tinymce {
 
 .wrapper {
 	height: 100vh;
-	overflow: hidden;
+	overflow-x: hidden;
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
@@ -109,6 +110,70 @@ body#tinymce {
         max-width: 50%;
         padding-right: calc(var(--bs-gutter-x) * .5);
     }
+}
+
+.notifications {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
+    position: absolute;
+    top: 5rem;
+    right: 1rem;
+    z-index: 9999;
+    pointer-events: none;
+    transition: opacity 0.35s ease-in-out;
+}
+
+.notifications > .notification {
+    width: 100%;
+    margin-bottom: map-get($spacers, 2);
+    border-radius: 5px;
+    padding: map-get($spacers, 1) map-get($spacers, 2);
+    overflow: hidden;
+    box-shadow: $box-shadow-sm;
+    pointer-events: all;
+}
+
+.notifications > .notification .notificationText {
+    display: inline;
+    margin-bottom: 5px;
+}
+
+.notifications > .notification .timerWrap {
+    position: absolute;
+    height: 5px;
+    width: 100%;
+    border-style: solid;
+    border-color: inherit;
+    border-width: 0 1px 1px 1px;
+    overflow: hidden;
+    bottom: 0px;
+    left: 0;
+    right: 0;
+    background-color: inherit;
+    filter: brightness(0.75);
+    z-index: 4;
+}
+
+.notifications > .notification .timerBar {
+    width: 0%;
+    height: 100%;
+    background-color: $white;
+    position: absolute;
+    height: 5px;
+    bottom: 0px;
+    left: 0;
+    right: 0;
+    z-index: 5;
+}
+
+.notifications > .notification .notificationClose {
+    cursor: pointer;
+}
+
+.notifications > .notification .notificationClose:hover,
+.notifications > .notification .notificationClose:active {
+    color: tint-color($dark, 20);
 }
 
 /* ADMIN LOGIN */

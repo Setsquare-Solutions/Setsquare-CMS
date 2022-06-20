@@ -730,6 +730,117 @@
         return '<a href="' . explode('?', $_SERVER['REQUEST_URI'])[0] . '?id=' . $id . (!empty($returnUrl) ? '&return=' . urlencode($returnUrl) : '') . '" class="btn btn-primary mb-1">' . $value . '</a>';
     }
 
+    //Create notification
+    function createnotification($message, $classes = 'alert-dark', $duration = 10000) {
+        $currentNotifications = json_decode($_SESSION['notifications'], true);
+
+        if(!is_numeric($duration) || $duration < 1000) {
+            $duration = 1000;
+        }
+
+        //Remove any expired notifications
+        if(!empty($currentNotifications)) {
+            foreach($currentNotifications as $index => $notification) {
+                $seconds = $notification['duration'] / 1000;
+
+                if(time() >= $notification['datetime'] + $seconds) {
+                    unset($currentNotifications[$index]);
+                }
+            }
+        }
+
+        //Add the new notification
+        if(!empty($message)) {
+            $currentNotifications[] = [
+                'message' => $message,
+                'classes' => $classes,
+                'duration' => $duration,
+                'datetime' => strtotime('now')
+            ];
+        }
+
+        //Sort the final notifications array
+        usort($currentNotifications, function($a, $b) {
+            return $a['datetime'] > $b['datetime'];
+        });
+
+        $currentNotifications = array_values($currentNotifications);
+        //setcookie('notifications', json_encode($currentNotifications), time()+3600, '/');
+        $_SESSION['notifications'] = json_encode($currentNotifications);
+    }
+
+    //Remove notification
+    function removenotification($timestamp) {
+        $currentNotifications = json_decode($_SESSION['notifications'], true);
+
+        if(!empty($currentNotifications) && is_array($currentNotifications)) {
+            $toRemove = array_search($timestamp, array_column($currentNotifications, 'datetime'));
+            unset($currentNotifications[$toRemove]);
+        }
+
+        //Sort the final notifications array
+        usort($currentNotifications, function($a, $b) {
+            return $a['datetime'] > $b['datetime'];
+        });
+
+        $currentNotifications = array_values($currentNotifications);
+        //setcookie('notifications', json_encode($currentNotifications), time()+3600, '/');
+        $_SESSION['notifications'] = json_encode($currentNotifications);
+    }
+
+    //Display notifications
+    function displaynotifications() {
+        $output = '';
+        $displayNotifications = json_decode($_SESSION['notifications'], true);
+        
+        if(!empty($displayNotifications) && is_array($displayNotifications)) {
+            usort($displayNotifications, function($a, $b) {
+                return $a['datetime'] > $b['datetime'];
+            });
+
+            foreach($displayNotifications as $index => $notification) {
+                $seconds = $notification['duration'] / 1000;
+
+                if(time() >= $notification['datetime'] + $seconds) {
+                    unset($displayNotifications[$index]);
+                    continue;
+                }
+                else {
+                    $output .= 
+                        '<div class="notification alert ' . $notification['classes'] . '" data-timestamp="' . $notification['datetime'] . '" data-duration="' . $seconds . '" id="' . rtrim(base64_encode($notification['datetime']), '=') . '">
+                            <span class="notificationClose link-close"><span class="fa fa-times"></span></span>
+                            <span class="notificationText">' . $notification['message'] . '</span>
+                            <div class="timerWrap"></div><div class="timerBar" style="overflow: hidden; width: 0.00892982%;"></div>
+                        </div>';
+                }
+            }
+
+            return $output;
+        }
+    }
+
+    //Set a notification via AJAX
+    if(isset($_GET['createnotification']) && !empty($_GET['notificationmessage'])) {
+        ob_clean();
+
+        $classes = (!empty($_GET['notificationclasses']) ? $_GET['notificationclasses'] : 'alert-dark');
+        $duration = (!empty($_GET['notificationduration']) ? $_GET['notificationduration'] : 10000);
+
+        createnotification($_GET['notificationmessage'], $classes, $duration);
+
+        echo json_encode(displaynotifications());
+        exit();
+    }
+
+    //Remove a notification via AJAX
+    if(isset($_GET['removenotification']) && !empty($_GET['notificationtimestamp'])) {
+        ob_clean();
+        
+        removenotification($_GET['notificationtimestamp']);
+
+        exit();
+    }
+
     //Include classes
     $classes = scandir(dirname(__FILE__) . '/classes');
 
