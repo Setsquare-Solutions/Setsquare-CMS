@@ -128,11 +128,8 @@ $("input[name='returnList']").click(function() {
         queryParameters[value.split("=")[0]] = value.split("=")[1];
     });
 
-    if(queryParameters["return"].length) {
+    if(typeof queryParameters["return"] != "undefined" && queryParameters["return"].length) {
         window.location.href = decodeURIComponent(queryParameters["return"]);
-    }
-    else if(document.referrer && document.referrer.indexOf(location.hostname) !== false && document.referrer != location.href) {
-        window.location.href = document.referrer;
     }
     else {
 	    window.location.href = window.location.href.split("?")[0];
@@ -150,20 +147,10 @@ $("input[name='deleteContent'], input[name='deleteEvent']").click(function() {
 				dataType: "json",
 				data: ({id: $(this).attr("data-id"), method: "deleteContent"}),
 				success: function(data) {
+                    createnotification(data['message'], 'alert-' + data['status']);
+
 					if(data["status"] == "success") {
-						location.reload();
-					}
-					else {
-						var message = "<div class='alert alert-" + data["status"] + "'>" + data["message"] + "</div>";
-                        
-						if(btn.parents("table").first().length > 0) {
-							btn.parents("table").first().find(".alert").remove();
-							$(message).insertBefore(btn.parents("table").first());
-						}
-						else {
-							btn.parents("form").first().find(".alert").remove();
-							$(message).appendTo(btn.parents("form").first());
-						}
+                        location.reload();
 					}
 				}
 			});
@@ -291,6 +278,101 @@ $(".structure input[name='saveStructure']").click(function() {
     }
     
     structure.find("input[name='json']").val(JSON.stringify(json));
+});
+
+//Create notifcation
+function createnotification(message, classes, duration) {
+    if(typeof classes == 'undefined') {
+        classes = 'alert-dark';
+    }
+
+    if(typeof duration == 'undefined') {
+        duration = 10000;
+    }
+
+    if(typeof message != 'undefined') {
+        $.ajax({
+            url: window.location.pathname,
+            method: "get",
+            dataType: "json",
+            data: ({createnotification: true, notificationmessage: message, notificationclasses: classes, notificationduration: duration}),
+            success: function(data) {
+                location.reload();
+                $(".notifications").html(data);
+                checknotifications($(".notifications"));
+            }
+        });
+    }
+}
+
+//Start timer for notifications
+function checknotifications(element) {
+    var currentTimestamp = Math.round((new Date()).getTime() / 1000);
+
+    element.children(".notification").each(function() {
+        var notificationTimestamp = $(this).attr("data-timestamp");
+        var duration = $(this).attr("data-duration");
+        var remainingSeconds = duration - (currentTimestamp - notificationTimestamp);
+
+        //Check if the notification has enough seconds remaining to be displayed
+        if(remainingSeconds > 0) {
+            var thisNotification = $("#" + $(this).attr("id"));
+            var timerBar = thisNotification.find(".timerBar").first();
+            var barWidth = Math.floor(100 - ((remainingSeconds / duration) * 100)) - 10;
+
+            //Set the initial starting width for the bar
+            timerBar.css({
+                "width": barWidth + "%"	
+            });
+
+            //Increase the width of the white bar
+            timerBar.animate({
+                "width": "100%"
+            }, remainingSeconds * 1000, function() {
+                //Slide the notification off the page and remove once the bar has filled
+                thisNotification.animate({
+                    "right": "-9999px"
+                }, 500, function() {
+                    thisNotification.remove();
+                });
+            });
+        }
+        //Otherwise immediately remove it
+        else {
+            $(this).remove();
+        }
+    });
+};
+
+$(function() {
+    setTimeout(function() {
+        checknotifications($(".notifications"));
+    }, 100);
+});
+
+//Manually remove notification
+function removenotification(element) {
+    var thisNotification = element;
+
+    //Remove this notification from the cookie array
+    $.ajax({
+        url: window.location.pathname,
+        method: "get",
+        dataType: "json",
+        data: ({removenotification: true, notificationtimestamp: thisNotification.attr("data-timestamp")})
+    });
+
+
+    //Animate the notification off screen and remove
+    thisNotification.animate({
+        "right": "-9999px"
+    }, 500, function() {
+        thisNotification.remove();
+    });
+}
+
+$(".notifications").on("click", ".notificationClose", function() {
+    removenotification($(this).parent(".notification"));
 });
 
 //Forms
@@ -573,11 +655,10 @@ $("input[name='deleteForm']").click(function() {
             dataType: "json",
             data: ({id: id, deleteForm: true}),
             success: function(data) {
+                createnotification(data['message'], 'alert-' + data['status']);
+                
                 if(data['status'] == 'success') {
                     window.location.reload();
-                }
-                else {
-                    $("<div class='alert alert-" + data['status'] + " mt-3'>" + data['deletemsg'] + "</div>").appendTo($(".contentInner > div:first-child"));
                 }
             }
         });
@@ -763,6 +844,8 @@ function carousel_regen(carousel) {
             if($("input[name='carousel']").length > 1) {
                 $("input[name='carousel']").last().remove();
             }
+
+            carousel.carousel("dispose");
         }
     });
 }

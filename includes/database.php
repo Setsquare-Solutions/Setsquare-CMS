@@ -1,10 +1,12 @@
 <?php
 	
+    ob_start();
+
 	if(session_status() === PHP_SESSION_NONE) {
         session_start();
     }
     
-    define('CMS_VERSION', 'v1.4.3');
+    define('CMS_VERSION', 'v1.4.5');
 
     $setupLoc = (!empty($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['SERVER_NAME'] . '/' . explode($_SERVER['DOCUMENT_ROOT'] . '/', dirname(__DIR__))[1] . '/admin/setup';
 
@@ -15,7 +17,7 @@
         }
         
         include_once(dirname(__FILE__) . '/settings.php');
-        $mysqli = new mysqli($hostname, $username, $password, $database);
+        $mysqli = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DATABASE);
 
         if($mysqli->connect_error) {
             die('Failed to connect to database');
@@ -28,11 +30,6 @@
             header('Location: ' . $setupLoc);
             exit();
         }
-
-        unset($hostname);
-        unset($database);
-        unset($username);
-        unset($password);
         unset($setupLoc);
     }
 

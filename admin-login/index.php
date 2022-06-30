@@ -18,14 +18,20 @@
 			
 			if(password_verify($_POST['password'], $user['password'])) {
 				$failed = false;
+				$currDate = date('Y-m-d H:i:s');
+
+				//Update last sign in time
+				$lastSignIn = $mysqli->prepare("UPDATE `users` SET last_signin = ? WHERE id = ?");
+				$lastSignIn->bind_param('si', $currDate, $user['id']);
+				$lastSignIn->execute();
 				
 				$_SESSION['adminid'] = $user['id'];
 				$_SESSION['adminuser'] = $user['username'];
                 $_SESSION['profileid'] = $_SESSION['adminid'];
                 $_SESSION['profileuser'] = $_SESSION['adminuser'];
 				
-                if(!empty($_SESSION['adminredirect'])) {
-                    header('Location: ' . $_SESSION['adminredirect']);
+                if(!empty($_POST['redirectto']) && strpos($_POST['redirectto'], ROOT_DIR . 'admin/') === 0) {
+                    header('Location: ' . $_POST['redirectto']);
                 }
                 else {
 				    header('Location: ../admin');
@@ -60,11 +66,11 @@
 		<link rel="preconnect" href="https://fonts.gstatic.com">
 		<link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-		<link rel="stylesheet" href="css/adminStyle.min.css">
+		<link rel="stylesheet" href="css/admin.min.css">
 		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
-		<script src="bootstrap-5.0.1/bootstrap.min.js"></script>
+		<script src="js/bootstrap.bundle.min.js"></script>
 		<script src="https://kit.fontawesome.com/a05d626b05.js" crossorigin="anonymous"></script>
 	</head>
 	
@@ -78,7 +84,7 @@
 				<div class="content">
 					<form id="adminLogin" class="shadow rounded bg-white overflow-hidden mx-auto my-5" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 						<input type="hidden" name="dologin">
-						<input type="hidden" name="redirectto" value="<?php echo $_SESSION['adminredirect']; ?>">
+						<input type="hidden" name="redirectto" value="<?php echo urldecode($_GET['redirect']); ?>">
                         
 						<div class="formHeader text-center bg-primary text-white p-3">
 							<h1 class="mb-0"><span class="fa fa-unlock-alt me-3"></span>Admin Login</h1>

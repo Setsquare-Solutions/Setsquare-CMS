@@ -29,8 +29,7 @@
         $ex = $create->execute();
         
         if($ex === false) {
-            $status = 'danger';
-            $message = 'Failed to create content';
+            createnotification('Failed to create content', 'alert-danger');
         }
         else {
             $lastId = $mysqli->insert_id;
@@ -71,12 +70,10 @@
         $save->execute();
         
         if($save->error) {
-            $status = 'danger';
-            $message = 'Failed to save changes';
+            createnotification('Failed to save changes', 'alert-danger');
         }
         else {
-            $status = 'success';
-            $message = 'Saved changes successfully';
+            createnotification('Changes saved successfully', 'alert-success');
         }
     }
 
@@ -205,12 +202,6 @@
                 <input type="submit" class="btn btn-primary mb-1" name="saveContent" value="Save">
                 <input type="button" class="btn btn-danger mb-1" name="deleteContent" data-id="<?php echo $content['id']; ?>" value="Delete">
             </div>
-            
-            <?php if(isset($message)) : ?>
-                <div class="alert alert-<?php echo $status; ?> mb-0 mt-3">
-                    <?php echo $message; ?>
-                </div>
-            <?php endif; ?>
         </div>
 
         <div class="col py-3">
@@ -258,7 +249,7 @@
 	</div>
 
 	<div class="col py-3">
-		<h3>Current <?php echo $pt['name']; ?></h3>
+		<h3>Current <?php echo ucwords(str_replace('-', ' ', $pt['name'])); ?></h3>
 		
 		<?php 
 			$search = (!empty($_GET['search']) ? '%' . $_GET['search'] . '%' : '%');

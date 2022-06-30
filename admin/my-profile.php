@@ -30,8 +30,7 @@
         
         if($emailCount > 0) {
             $allowUpdate = false;
-            $status = 'danger';
-            $message = 'This email is already in use';
+            createnotification('This email is already in use', 'alert-danger');
         }
         
         //Check if username exists
@@ -42,8 +41,7 @@
         
         if($usernameCount > 0) {
             $allowUpdate = false;
-            $status = 'danger';
-            $message = 'This username is already in use';
+            createnotification('This username is already in use', 'alert-danger');
         }
         
         if($allowUpdate == true) {
@@ -61,12 +59,10 @@
             $update->execute();
 
             if($update->error) {
-                $status = 'danger';
-                $message = 'Failed to update profile';
+                createnotification('Failed to update profile', 'alert-danger');
             }
             else {
-                $status = 'success';
-                $message = 'Successfully updated profile';
+                createnotification('Profile updated successfully', 'alert-success');
             }
         }
     }
@@ -113,12 +109,6 @@
         <div class="form-group d-flex align-items-center mb-3">
 			<input type="submit" class="btn btn-primary" name="saveProfile" value="Save Profile">
 		</div>
-		
-		<?php if(isset($message)) : ?>
-			<div class="alert alert-<?php echo $status; ?> mb-0">
-				<?php echo $message; ?>
-			</div>
-		<?php endif; ?>
     </form>
 </div>
 
