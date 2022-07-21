@@ -29,7 +29,7 @@
 				<p>You have requested to reset your password, click the link below to do so.
 				<br><small>(This link will expire after 24 hours)</small></p>
 				
-				<p><a style="background: #009688; color: #fff; padding: 0.5rem; border-radius: 4px; text-decoration: none;" href="https://' . $_SERVER['SERVER_NAME'] . ROOT_DIR . 'admin-login/reset-password?token=' . $token . '" target="_blank">Reset my password</a></p>';
+				<p><a style="background: #f44336; color: #fff; padding: 0.5rem; border-radius: 4px; text-decoration: none;" href="https://' . $_SERVER['SERVER_NAME'] . ROOT_DIR . 'admin-login/reset-password?token=' . $token . '" target="_blank">Reset my password</a></p>';
 			
 			if(!sendemail($to, $subject, $content)) {
 				$error = true;

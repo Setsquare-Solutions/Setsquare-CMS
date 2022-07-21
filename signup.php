@@ -70,7 +70,7 @@
                         
                         <p>Thank you for registering at ' . $_SERVER['SERVER_NAME'] . '. Please click on the link below to verify your email address. You will then be able to login with your username <strong>' . $username . '</strong> and your chosen password.</p>
                         
-                        <p><a style="background: #009688; color: #fff; padding: 0.5rem; border-radius: 4px; text-decoration: none;" href="https://' . $_SERVER['SERVER_NAME'] . ROOT_DIR . 'myaccount?id=' . $lastId . '&email=' . $_POST['email'] . '" target="_blank">Verify my email address</a></p>';
+                        <p><a style="background: #f44336; color: #fff; padding: 0.5rem; border-radius: 4px; text-decoration: none;" href="https://' . $_SERVER['SERVER_NAME'] . ROOT_DIR . 'myaccount?id=' . $lastId . '&email=' . $_POST['email'] . '" target="_blank">Verify my email address</a></p>';
                     
                     if(sendemail($_POST['email'], 'Email verification required', $content)) {
                         $status = 'success';
