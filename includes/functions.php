@@ -243,7 +243,7 @@
 	  //PHP mail function with HTML template
     $sendEmailDebug = '';
 
-    function sendemail($to, $subject, $content, $attachments = [], $template = '') {
+    function sendemail($to, $subject, $content, $attachments = [], $template = '', $replyTo = []) {
         global $mysqli, $sendEmailDebug;
         
         //Load template
@@ -310,6 +310,11 @@
                 }
             }
         }
+        elseif(is_string($attachments)) { 
+            for($i = 0; $i < count($_FILES[$attachments]['tmp_name']); $i++) {
+                $mail->addAttachment($_FILES[$attachments]['tmp_name'][$i], $_FILES[$attachments]['name'][$i]);
+            }
+        }
         
         $sendEmailDebug = '';
         $mail->SMTPDebug = 3;
@@ -345,7 +350,13 @@
         }
         
         //Set reply to address
-        if(!empty($mailSettings['reply_to_address']) && !empty($mailSettings['reply_to_friendly'])) {
+        if(is_array($replyTo) && count($replyTo) === 2) {
+            $mail->addReplyTo($replyTo[0], $mailSettings[1]);
+        }
+        elseif(is_array($replyTo) && count($replyTo) === 1) {
+            $mail->addReplyTo($mailSettings[0]);
+        }
+        elseif(!empty($mailSettings['reply_to_address']) && !empty($mailSettings['reply_to_friendly'])) {
             $mail->addReplyTo($mailSettings['reply_to_address'], $mailSettings['reply_to_friendly']);
         }
         elseif(!empty($mailSettings['reply_to_address'])) {
