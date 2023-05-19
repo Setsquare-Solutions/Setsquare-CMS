@@ -95,7 +95,7 @@
                                     foreach($input['options'] as $option) {
                                         $output .= 
                                             '<div class="form-check">
-                                                <input type="radio" class="form-check-input" id="' . $input['inputid'] . $ri . '" name="' . ($input['inputid']) . '"' . ($input['required'] == true ? ' required' : '') . ($option['default'] === true ? ' checked' : '') . '>
+                                                <input type="radio" class="form-check-input" id="' . $input['inputid'] . $ri . '" name=" value="' . $option['value'] . '"' . ($input['inputid']) . '"' . ($input['required'] == true ? ' required' : '') . ($option['default'] === true ? ' checked' : '') . '>
                                                 <label for="' . $input['inputid'] . $ri . '">' . $option['value'] . '</label>
                                             </div>';
                                         $ri++;
